@@ -1,0 +1,50 @@
+###############################################################################
+#                          Generated on phpdocker.io                          #
+###############################################################################
+version: "3.1"
+services:
+
+    redis:
+      image: redis:alpine
+      container_name: parcial-redis
+
+    mysql:
+      image: mysql:8.0
+      container_name: parcial-mysql
+      #working_dir: /application
+      #volumes:
+      #  - .:/application
+      environment:
+        - MYSQL_ROOT_PASSWORD= 12345
+        - MYSQL_DATABASE= programacion
+        - MYSQL_USER= demo
+        - MYSQL_PASSWORD= 12345
+        #volumes: 
+          # este fue una prueba para utilizar una base de datos que se encuentra en la carpeta sql, la idea era que, utilizara esa base de datos 
+          # como un script, generando la base y las tablas automaticamnete.
+       # - ./sql:/docker-entrypoint-initdb.d
+      #ports:
+        #- "3312:3306"
+
+    webserver:
+      image: nginx:alpine
+      container_name: parcial-webserver
+      working_dir: /application
+      volumes:
+          - ./src:/application
+          - ./phpdocker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      ports:
+       - "3310:80"
+      links: 
+        - mysql
+        - php-fpm
+        - redis
+
+    php-fpm:
+      build: phpdocker/php-fpm
+      container_name: parcial-php-fpm
+      working_dir: /application
+      volumes:
+        - ./src:/application
+        - ./phpdocker/php-fpm/php-ini-overrides.ini:/etc/php/7.2/fpm/conf.d/99-overrides.ini
+
